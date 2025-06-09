@@ -26,6 +26,7 @@
  * SUCH DAMAGE.
  */
 
+
 #include <android/api-level.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -76,6 +77,8 @@
 //#include "android-base/strings.h"
 //#include "android-base/stringprintf.h"
 //#include "ziparchive/zip_archive.h"
+
+#include <libgen.h>
 
 #ifdef WANT_ARM_TRACING
 #include "../wrappers.h"
@@ -188,7 +191,7 @@ static std::string resolve_soname(const std::string& name) {
   // On the other hand there are several places where we already assume that
   // soname == basename in particular for any not-loaded library mentioned
   // in DT_NEEDED list.
-  return basename(name.c_str());
+  return basename(const_cast<char*>(name.c_str()));
 }
 
 static bool maybe_accessible_via_namespace_links(android_namespace_t* ns, const char* name) {
@@ -238,7 +241,7 @@ static bool is_greylisted(android_namespace_t* ns, const char* name, const soinf
   // if this is an absolute path - make sure it points to /system/lib(64)
   if (name[0] == '/' && dirname(name) == kSystemLibDir) {
     // and reduce the path to basename
-    name = basename(name);
+    name = basename(const_cast<char*>(name));
   }
 
   for (size_t i = 0; kLibraryGreyList[i] != nullptr; ++i) {
@@ -276,7 +279,7 @@ static bool translateSystemPathToApexPath(const char* name, std::string* out_nam
     return false;
   }
 
-  const char* base_name = basename(name);
+  const char* base_name = basename(const_cast<char*>(name));
 
   for (const char* soname : kSystemToRuntimeApexLibs) {
     if (strcmp(base_name, soname) == 0) {
@@ -1199,12 +1202,12 @@ int open_executable(const char* path, off64_t* file_offset, std::string* realpat
   return open_library_at_path(&zip_archive_cache, path, file_offset, realpath);
 }
 
-const char* fix_dt_needed(const char* dt_needed, const char* sopath __unused) {
+const char* fix_dt_needed(const char* dt_needed, const char* sopath __attribute__((__unused__))) {
 #if !defined(__LP64__)
   // Work around incorrect DT_NEEDED entries for old apps: http://b/21364029
   int app_target_api_level = get_application_target_sdk_version();
   if (app_target_api_level < __ANDROID_API_M__) {
-    const char* bname = basename(dt_needed);
+    const char* bname = basename(const_cast<char*>(dt_needed));
     if (bname != dt_needed) {
       DL_WARN_documented_change(__ANDROID_API_M__,
                                 "invalid-dt_needed-entries-enforced-for-api-level-23",
@@ -2873,7 +2876,7 @@ bool soinfo::relocate_relr() {
 
 #if !defined(__mips__)
 #if defined(USE_RELA)
-static ElfW(Addr) get_addend(ElfW(Rela)* rela, ElfW(Addr) reloc_addr __unused) {
+static ElfW(Addr) get_addend(ElfW(Rela)* rela, ElfW(Addr) reloc_addr __attribute__((__unused__))) {
   return rela->r_addend;
 }
 #else
@@ -3954,7 +3957,7 @@ bool soinfo::prelink_image() {
       this != solist_get_somain() &&
       (flags_ & FLAG_LINKER) == 0 &&
       get_application_target_sdk_version() < __ANDROID_API_M__) {
-    soname_ = basename(realpath_.c_str());
+    soname_ = basename(const_cast<char*>(realpath_.c_str()));
     DL_WARN_documented_change(__ANDROID_API_M__,
                               "missing-soname-enforced-for-api-level-23",
                               "\"%s\" has no DT_SONAME (will use %s instead)",
@@ -4228,7 +4231,7 @@ std::vector<android_namespace_t*> init_default_namespaces(const char* executable
 
   const char *interp = phdr_table_get_interpreter_name(somain->phdr, somain->phnum,
                                                        somain->load_bias);
-  const char* bname = (interp != nullptr) ? basename(interp) : nullptr;
+  const char* bname = (interp != nullptr) ? basename(const_cast<char*>(interp)) : nullptr;
 
   g_is_asan = bname != nullptr &&
               (strcmp(bname, "linker_asan") == 0 ||

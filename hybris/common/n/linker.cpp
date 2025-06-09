@@ -26,6 +26,8 @@
  * SUCH DAMAGE.
  */
 
+ 
+
 #include <android/api-level.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -313,7 +315,7 @@ static bool is_greylisted(const char* name, const soinfo* needed_by) {
   // if this is an absolute path - make sure it points to /system/lib(64)
   if (name[0] == '/' && dirname(name) == kSystemLibDir) {
     // and reduce the path to basename
-    name = basename(name);
+    name = basename(const_cast<char*>(name));
   }
 
   for (size_t i = 0; kLibraryGreyList[i] != nullptr; ++i) {
@@ -1836,7 +1838,7 @@ static const char* fix_dt_needed(const char* dt_needed, const char* sopath) {
 #if !defined(__LP64__)
   // Work around incorrect DT_NEEDED entries for old apps: http://b/21364029
   if (get_application_target_sdk_version() <= 22) {
-    const char* bname = basename(dt_needed);
+    const char* bname = basename(const_cast<char*>(dt_needed));
     if (bname != dt_needed) {
       DL_WARN("library \"%s\" has invalid DT_NEEDED entry \"%s\"", sopath, dt_needed);
       add_dlwarning(sopath, "invalid DT_NEEDED entry",  dt_needed);
@@ -4219,7 +4221,7 @@ bool soinfo::prelink_image() {
   // the main executable and linker; they do not need to have dt_soname
   if (soname_ == nullptr && this != somain && (flags_ & FLAG_LINKER) == 0 &&
       get_application_target_sdk_version() <= 22) {
-    soname_ = basename(realpath_.c_str());
+    soname_ = basename(const_cast<char*>(realpath_.c_str()));
     DL_WARN("%s: is missing DT_SONAME will use basename as a replacement: \"%s\"",
         get_realpath(), soname_);
     // Don't call add_dlwarning because a missing DT_SONAME isn't important enough to show in the UI

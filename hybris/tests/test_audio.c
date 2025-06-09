@@ -15,6 +15,8 @@
  *
  */
 
+#define _POSIX_C_SOURCE 200809L
+#include <string.h>
 #include <android-config.h>
 #include <memory.h>
 #include <assert.h>

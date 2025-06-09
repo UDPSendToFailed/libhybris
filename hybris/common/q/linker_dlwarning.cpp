@@ -34,6 +34,8 @@
 
 #include "hybris_compat.h"
 
+#include <libgen.h>
+
 static std::string current_msg;
 
 void add_dlwarning(const char* sopath, const char* message, const char* value) {
@@ -41,7 +43,7 @@ void add_dlwarning(const char* sopath, const char* message, const char* value) {
     current_msg += '\n';
   }
 
-  current_msg = current_msg + basename(sopath) + ": " + message;
+  current_msg = current_msg + basename(const_cast<char*>(sopath)) + ": " + message;
 
   if (value != nullptr) {
     current_msg = current_msg + " \"" + value + "\"";

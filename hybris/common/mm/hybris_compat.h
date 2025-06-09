@@ -27,11 +27,15 @@
  */
 
 
+
 #ifndef HYBRIS_ANDROID_MM_COMPAT_H_
 #define HYBRIS_ANDROID_MM_COMPAT_H_
 
 #include <string.h>
 #include <memory.h>
+#ifndef __GLIBC__
+#include <hybris/common/musl_compat.h>
+#endif
 
 extern "C" size_t strlcpy(char *dest, const char *src, size_t size);
 extern "C" size_t strlcat(char *dst, const char *src, size_t size);
@@ -54,5 +58,13 @@ extern "C" size_t strlcat(char *dst, const char *src, size_t size);
 
 #define DT_ANDROID_RELA (DT_LOOS + 4)
 #define DT_ANDROID_RELASZ (DT_LOOS + 5)
+
+#if defined (__aarch64__)
+
+#ifndef R_AARCH64_IRELATIVE
+#define R_AARCH64_IRELATIVE 1032
+#endif
+
+#endif
 
 #endif

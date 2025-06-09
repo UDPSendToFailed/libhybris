@@ -27,11 +27,13 @@
  */
 
 
+
 #ifndef HYBRIS_ANDROID_MM_COMPAT_H_
 #define HYBRIS_ANDROID_MM_COMPAT_H_
 
 #include <string.h>
 #include <memory.h>
+
 
 extern "C" size_t strlcpy(char *dest, const char *src, size_t size);
 extern "C" size_t strlcat(char *dst, const char *src, size_t size);

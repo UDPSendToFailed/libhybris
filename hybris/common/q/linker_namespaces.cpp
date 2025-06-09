@@ -34,13 +34,15 @@
 #include <dlfcn.h>
 #include <algorithm>
 
+#include <libgen.h>
+
 bool android_namespace_t::is_accessible(const std::string& file) {
   if (!is_isolated_) {
     return true;
   }
 
   if (!whitelisted_libs_.empty()) {
-    const char *lib_name = basename(file.c_str());
+    const char *lib_name = basename(const_cast<char*>(file.c_str()));
     if (std::find(whitelisted_libs_.begin(), whitelisted_libs_.end(),
                   lib_name) == whitelisted_libs_.end()) {
       return false;

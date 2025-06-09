@@ -80,7 +80,7 @@ static uint32_t ParseProperty(const std::string& value) {
 #ifdef DISABLED_FOR_HYBRIS_SUPPORT
 static void GetAppSpecificProperty(char* buffer) {
   // Get process basename.
-  const char* process_name_start = basename(g_argv[0]);
+  const char* process_name_start = basename(const_cast<char*>(g_argv[0]));
 
   // Remove ':' and everything after it. This is the naming convention for
   // services: https://developer.android.com/guide/components/services.html

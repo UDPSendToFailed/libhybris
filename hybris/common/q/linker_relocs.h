@@ -30,6 +30,13 @@
 
 #include <elf.h>
 
+#if defined(__aarch64__) && !defined(R_AARCH64_IRELATIVE)
+/* musl's elf.h does not define this */
+#define R_AARCH64_IRELATIVE 1032
+#endif
+
+struct soinfo;
+
 #define R_GENERIC_NONE 0 // R_*_NONE is always 0
 
 #if defined (__aarch64__)

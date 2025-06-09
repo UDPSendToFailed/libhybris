@@ -42,6 +42,13 @@
 #include "private/bionic_tls.h"
 #include "private/ScopedPthreadMutexLocker.h"
 
+#if !defined(__GLIBC__) && !defined(PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP)
+// musl doesn't have the non-portable _NP variant, so define it to the musl equivalent
+#define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP {{PTHREAD_MUTEX_RECURSIVE}}
+#endif
+
+/* This file hijacks the symbols stubbed out in libdl.so. */
+
 #define __LINKER_PUBLIC__ __attribute__((visibility("default")))
 
 extern "C" {

@@ -26,6 +26,8 @@
  * SUCH DAMAGE.
  */
 
+
+
 #include <android/api-level.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -218,7 +220,7 @@ static std::string resolve_soname(const std::string& name) {
   // On the other hand there are several places where we already assume that
   // soname == basename in particular for any not-loaded library mentioned
   // in DT_NEEDED list.
-  return basename(name.c_str());
+  return basename(const_cast<char*>(name.c_str()));
 }
 
 static bool maybe_accessible_via_namespace_links(android_namespace_t* ns, const char* name) {
@@ -269,7 +271,7 @@ static bool is_greylisted(android_namespace_t* ns, const char* name, const soinf
   // if this is an absolute path - make sure it points to /system/lib(64)
   if (name[0] == '/' && dirname(name) == kSystemLibDir) {
     // and reduce the path to basename
-    name = basename(name);
+    name = basename(const_cast<char*>(name));
   }
 
   for (size_t i = 0; kLibraryGreyList[i] != nullptr; ++i) {
@@ -1176,7 +1178,7 @@ const char* fix_dt_needed(const char* dt_needed, const char* sopath) {
 #if !defined(__LP64__)
   // Work around incorrect DT_NEEDED entries for old apps: http://b/21364029
   if (get_application_target_sdk_version() < __ANDROID_API_M__) {
-    const char* bname = basename(dt_needed);
+    const char* bname = basename(const_cast<char*>(dt_needed));
     if (bname != dt_needed) {
       DL_WARN("library \"%s\" has invalid DT_NEEDED entry \"%s\"", sopath, dt_needed);
       add_dlwarning(sopath, "invalid DT_NEEDED entry",  dt_needed);
@@ -3432,7 +3434,7 @@ bool soinfo::prelink_image() {
       this != solist_get_somain() &&
       (flags_ & FLAG_LINKER) == 0 &&
       get_application_target_sdk_version() < __ANDROID_API_M__) {
-    soname_ = basename(realpath_.c_str());
+    soname_ = basename(const_cast<char*>(realpath_.c_str()));
     DL_WARN("%s: is missing DT_SONAME will use basename as a replacement: \"%s\"",
         get_realpath(), soname_);
     // Don't call add_dlwarning because a missing DT_SONAME isn't important enough to show in the UI

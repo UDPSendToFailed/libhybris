@@ -26,6 +26,8 @@
  * SUCH DAMAGE.
  */
 
+
+
 #include "linker_soinfo.h"
 
 #include <dlfcn.h>
@@ -365,6 +367,8 @@ ElfW(Sym)* soinfo::elf_addr_lookup(const void* addr) {
   return nullptr;
 }
 
+#ifdef __GLIBC__
+
 static void call_function(const char* function_name,
                           linker_ctor_function_t function,
                           const char* realpath) {
@@ -444,6 +448,7 @@ void soinfo::call_constructors() {
     return;
   }
 
+
   // We set constructors_called before actually calling the constructors, otherwise it doesn't
   // protect against recursive constructor calls. One simple example of constructor recursion
   // is the libc debug malloc, which is implemented in libc_malloc_debug_leak.so:
@@ -491,6 +496,7 @@ void soinfo::call_destructors() {
   // DT_FINI should be called after DT_FINI_ARRAY if both are present.
   call_function("DT_FINI", fini_func_, get_realpath());
 }
+#endif
 
 void soinfo::add_child(soinfo* child) {
   if (has_min_version(0)) {
